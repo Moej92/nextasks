@@ -2,20 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+
+::-webkit-calendar-picker-indicator {
+  background-color: #DED8E4;
+  border-radius: 2px;
+ }
+
+@layer components {
+  .topbar {
+    @apply flex justify-between items-center relative bg-purple-800 border-purple-900 border-b-2 py-3 md:py-5 px-3 md:px-5 gap-5 w-full
+  }
+
+  .leftbar {
+    @apply hidden lg:flex flex-col bg-purple-900 h-full min-w-[250px] xl:w-[300px]
+  }
+
+  .leftbar-link {
+    @apply flex items-center gap-1 hover:bg-purple py-2 px-3 rounded-sm w-full text-sm transition-colors
+  }
+
+  .bottombar-link {
+    @apply flex flex-col items-center p-1 rounded-sm hover:bg-purple transition-colors
+  }
+
+  .page-content-container {
+    @apply h-full px-3 pt-7 lg:px-7 pb-20 overflow-y-auto w-full app-scroll
+  }
+
+  .subtask-fieldset {
+    @apply border-purple-100 border border-b-0 rounded-sm p-2 px-3 sm:px-5 pb-3
+  }
+
+  .form-element {
+    @apply flex flex-col my-5 gap-1
+  }
+
+  .form-input {
+    @apply py-1 px-3 rounded-sm bg-purple-100 text-purple-900 placeholder:text-[#777777] transition-shadow w-full
+  }
+
+  .taskCard-completion-checkbox {
+    @apply w-[10%] flex justify-end pt-1 absolute right-5 z-10
+  }
+
+  .taskDetails-container {
+    @apply max-w-[700px] mx-auto lg:mx-0 bg-purple-100 text-purple-800 p-3 rounded-sm text-sm sm:text-base
+  }
+
+  .taskDetails-button {
+    @apply flex-col py-2 w-full text-sm sm:text-base transition-shadow hover:shadow-md hover:shadow-purple-800
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .app-scroll {
+    @apply [&::-webkit-scrollbar]:w-1 sm:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-purple-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#99b9ca]
+  }
+
+  .input-shadow {
+    @apply focus:shadow-lg focus:shadow-purple outline-none border-0
+  }
+
 }
+
