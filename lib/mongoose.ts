@@ -11,6 +11,7 @@ const cached: Cached = {
 };
 
 async function connectToDB() {
+
   if (cached.conn) {
     // If the connection already exists, reuse it
     console.log('Using existing MongoDB connection');
