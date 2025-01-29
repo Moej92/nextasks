@@ -16,30 +16,27 @@ export default async function Home() {
   const session = await auth();
   if(!session) return null;
 
-  console.log(session);
-
-  // const { id: userId } = session.user as { id: string };
+  const { id: userId } = session.user as { id: string };
   
-  // const tasks: TasksType = await getTasksForHomePage(userId);
+  const tasks: TasksType = await getTasksForHomePage(userId);
 
-  // if(!tasks.today.length && !tasks.upcoming.length && !tasks.overdue.length) {
-  //   return (
-  //     <div className="page-content-container">
-  //       <h2>No Available Tasks</h2>
-  //       <Link
-  //         href="/tasks/new-task"
-  //         className="bg-purple mt-5 py-2 px-4 rounded-sm"
-  //       >
-  //         Add New Task
-  //       </Link>
-  //     </div>
-  //   )
-  // }
+  if(!tasks.today.length && !tasks.upcoming.length && !tasks.overdue.length) {
+    return (
+      <div className="page-content-container">
+        <h2>No Available Tasks</h2>
+        <Link
+          href="/tasks/new-task"
+          className="bg-purple mt-5 py-2 px-4 rounded-sm"
+        >
+          Add New Task
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="page-content-container">
-      Hey {session.user && session.user.name}
-      {/* {Object.keys(tasks).map((item) => {
+      {Object.keys(tasks).map((item) => {
         const tasksItems = tasks[item as keyof TasksType];
         if(tasksItems.length)
         return (
@@ -58,7 +55,7 @@ export default async function Home() {
             </div>
           </div>
         )
-      })} */}
+      })}
     </div>
   );
 }
