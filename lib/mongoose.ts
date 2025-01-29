@@ -6,7 +6,6 @@ if (!uri) {
   throw new Error('MONGO_URI is missing in environment variables');
 }
 
-// Global variable to hold the mongoose connection state
 let isConnected = false;
 
 const connectToDB = async () => {
@@ -17,7 +16,7 @@ const connectToDB = async () => {
 
   try {
     await mongoose.connect(uri, {
-      dbName: 'nextasks', // You can change the db name if needed
+      dbName: 'nextasks',
     });
     isConnected = true;
     console.log('Connected to MongoDB successfully');

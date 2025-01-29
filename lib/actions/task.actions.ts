@@ -1,5 +1,7 @@
 "use server";
 
+export const runtime = "nodejs";
+
 import connectToDB from "../mongoose";
 import Task from "../models/task.models";
 
