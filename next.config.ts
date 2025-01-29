@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // experimental: {
-  //   serverActions: true
-  // },
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.externals.push('mongoose'); // Exclude mongoose in client-side bundles
+    }
+    return config;
+  },
   images: {
     remotePatterns: [
       {
