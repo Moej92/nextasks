@@ -1,51 +1,44 @@
-import mongoose from 'mongoose';
+import mongoose, { Mongoose } from 'mongoose';
 
-const uri = process.env.MONGO_URI;
-
-if (!uri) {
-  throw new Error('MONGO_URI is missing in environment variables');
+interface Cached {
+  conn: Mongoose | null;
+  promise: Promise<Mongoose> | null;
 }
 
-// Global variable to hold the mongoose connection state
-let isConnected = false;
-
-const connectToDB = async () => {
-  if (isConnected) {
-    console.log('MongoDB is already connected');
-    return;
-  }
-
-  try {
-    await mongoose.connect(uri, {
-      dbName: 'nextasks', // You can change the db name if needed
-    });
-    isConnected = true;
-    console.log('Connected to MongoDB successfully');
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    throw new Error('MongoDB connection error');
-  }
+const cached: Cached = {
+  conn: null,
+  promise: null,
 };
 
+async function connectToDB() {
+  if (cached.conn) {
+    // If the connection already exists, reuse it
+    console.log('Using existing MongoDB connection');
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    // If no connection, create a new connection
+    const options = {
+      bufferCommands: false, // Disable buffer commands to avoid retries on failure
+    };
+
+    cached.promise = mongoose.connect(process.env.MONGO_URI as string, {
+      dbName: 'nextasks',
+      ...options,
+    }).then((mongooseInstance) => {
+      console.log('Connected to MongoDB successfully');
+      return mongooseInstance;
+    }).catch((error) => {
+      console.error('Error connecting to MongoDB:', error);
+      throw new Error('MongoDB connection error');
+    });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
 export default connectToDB;
-
-// async function connectToDB() {
-//     if(cached.conn) {
-//         return cached.conn;
-//     }
-
-//     if(!cached.promise) {
-//         const options = {
-//             bufferCommands: false
-//         }
-
-//         cached.promise = mongoose.connect(process.env.MONGO_URI, {
-//             dbName: "nextasks"
-//         }).then((mongoose) => mongoose);
-//     }
-
-//     cached.conn = await cached.promise;
-//     return cached.conn
-// }
 
 
