@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import GitHub from "next-auth/providers/github"
 
-import connectToDB from "./lib/mongoose"
+import { connectToDB } from './lib/mongoose';
 import User from "@/lib/models/user.models";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -9,7 +9,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if(user) {
-        await connectToDB();
+        if(connectToDB) {
+          await connectToDB();
+        }
         const userDoc = await User.findOne({ email: user.email });
         if(!userDoc) {
           const newUser = new User({

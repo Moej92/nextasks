@@ -1,8 +1,6 @@
 "use server";
 
-export const runtime = "nodejs";
-
-import connectToDB from "../mongoose";
+import { connectToDB } from "../mongoose";
 import Task from "../models/task.models";
 
 import { ITaskFormData } from "../types";
@@ -21,8 +19,10 @@ export const createNewTask = async (taskData: ITaskFormData, userId?: string) =>
     const { title, note, tags, dueDate, priority, subtasks} = taskData;
 
     try {
-        await connectToDB();
-
+        if(connectToDB) {
+          await connectToDB();
+        }
+        
         const mainTask = new Task({
             title, 
             note, 
@@ -65,7 +65,9 @@ export const editTask = async (taskData: ITaskFormData, taskId?: string) => {
   const { title, note, tags, dueDate, priority, subtasks } = taskData;
 
   try {
-    await connectToDB();
+    if(connectToDB) {
+      await connectToDB();
+    }
     
     const taskDoc = await Task.findById(taskId);
     if(!taskDoc) {
@@ -137,7 +139,9 @@ export const editTask = async (taskData: ITaskFormData, taskId?: string) => {
 
 export const getTasksForHomePage = async (userId: string) => {
     try {
+      if(connectToDB) {
         await connectToDB();
+      }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Start of the day
@@ -185,7 +189,9 @@ export const getTasksForHomePage = async (userId: string) => {
 
 export const deleteTask = async (taskId: string) => {
   try {
-    await connectToDB();
+    if(connectToDB) {
+      await connectToDB();
+    }
 
     await Task.deleteMany({ parentTask: taskId})
     await Task.findByIdAndDelete(taskId);
@@ -207,7 +213,9 @@ export const updateTaskCompletionStatus = async (taskId: string, isCompleted: bo
   try {
     session.startTransaction();
 
-    await connectToDB();
+    if(connectToDB) {
+      await connectToDB();
+    }
 
     const updatedTask = await Task.findByIdAndUpdate(
       taskId,
@@ -247,7 +255,9 @@ export const updateTaskCompletionStatus = async (taskId: string, isCompleted: bo
 
 export const updateSubtaskCompletionStatus = async (taskId: string, isCompleted: boolean) => {
   try {
-    await connectToDB();
+    if(connectToDB) {
+      await connectToDB();
+    }
 
     await Task.findByIdAndUpdate(taskId, { isCompleted });
 
@@ -263,6 +273,10 @@ export const updateSubtaskCompletionStatus = async (taskId: string, isCompleted:
 export const getTaskById = async (taskId: string, userId: string) => {
 
   try {
+    if(connectToDB) {
+      await connectToDB();
+    }
+
     const taskDoc = await Task
       .findOne({ _id: taskId, createdBy: userId })
       .populate('subtasks', "title note dueDate isCompleted createdAt");
@@ -279,7 +293,9 @@ export const getTaskById = async (taskId: string, userId: string) => {
 
 export const searchTasks = async (userId: string, searchTerm: string) => {
   try {
-    await connectToDB();
+    if(connectToDB) {
+      await connectToDB();
+    }
 
     const query = {
       createdBy: userId,
