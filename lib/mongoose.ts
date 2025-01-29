@@ -1,37 +1,33 @@
 import mongoose from 'mongoose';
 
-let connectToDB: (() => Promise<void>) | null = null;
+const uri = process.env.MONGO_URI;
 
-// Check if we are not in Edge runtime
-if (process.env.NEXT_RUNTIME !== 'edge') {
-  const uri = process.env.MONGO_URI;
-
-  if (!uri) {
-    throw new Error('MONGO_URI is missing in environment variables');
-  }
-
-  let isConnected = false;
-
-  connectToDB = async () => {
-    if (isConnected) {
-      console.log('MongoDB is already connected');
-      return;
-    }
-
-    try {
-      await mongoose.connect(uri, {
-        dbName: 'nextasks',
-      });
-      isConnected = true;
-      console.log('Connected to MongoDB successfully');
-    } catch (error) {
-      console.error('Error connecting to MongoDB:', error);
-      throw new Error('MongoDB connection error');
-    }
-  };
+if (!uri) {
+  throw new Error('MONGO_URI is missing in environment variables');
 }
 
-export { connectToDB };
+// Global variable to hold the mongoose connection state
+let isConnected = false;
+
+const connectToDB = async () => {
+  if (isConnected) {
+    console.log('MongoDB is already connected');
+    return;
+  }
+
+  try {
+    await mongoose.connect(uri, {
+      dbName: 'nextasks', // You can change the db name if needed
+    });
+    isConnected = true;
+    console.log('Connected to MongoDB successfully');
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    throw new Error('MongoDB connection error');
+  }
+};
+
+export default connectToDB;
 
 // async function connectToDB() {
 //     if(cached.conn) {

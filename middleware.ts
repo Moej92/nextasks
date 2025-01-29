@@ -23,6 +23,11 @@ export default auth((req) => {
 
 export const config = {
     matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+    runtime: "nodejs",
+    unstable_allowDynamic: [
+        // allows a single file
+        "/lib/mongoose.ts",
+        // use a glob to allow anything in the function-bind 3rd party module
+        "/node_modules/mongoose/dist/**",
+    ],
 }
-
-// console.log("Middleware is running on:", process.env.NODE_ENV);

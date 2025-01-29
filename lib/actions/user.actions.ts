@@ -1,6 +1,6 @@
 "use server";
 
-import { connectToDB } from "../mongoose";
+import connectToDB from "../mongoose";
 import User from "../models/user.models";
 
 export interface Params {
@@ -13,9 +13,7 @@ export async function updateUser({ name, email, image }: Params) {
 
     try{
 
-        if(connectToDB) {
-            await connectToDB();
-        }
+        await connectToDB();
 
         const userDoc = await User.findOneAndUpdate(
             { email },
