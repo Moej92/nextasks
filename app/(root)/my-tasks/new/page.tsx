@@ -3,13 +3,11 @@ import { auth } from "@/auth";
 
 import { createNewTask } from "@/lib/actions/task.actions";
 
-import { IUserInfo, ITaskFormData } from "@/lib/types";
+import {ITaskFormData } from "@/lib/types";
 
 const Page = async () => {
     const session = await auth();
     if(!session) return null;
-  
-    let userInfo: IUserInfo;
   
     const { 
       name, 
