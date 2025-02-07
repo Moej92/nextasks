@@ -3,14 +3,14 @@ import { useState } from "react";
 import { updateSubtaskCompletionStatus } from "@/lib/actions/task.actions";
 
 const SubtaskCompletion = ({ 
-    taskId, 
+    subtaskId, 
     isCompleted 
-}: { taskId: string, isCompleted: boolean }) => {
+}: { subtaskId: string, isCompleted: boolean }) => {
     const [loading, setLoading] = useState(false);
 
     const handleSubtaskCompletion = async () => {
         setLoading(true);
-        await updateSubtaskCompletionStatus(taskId, !isCompleted);
+        await updateSubtaskCompletionStatus(subtaskId, !isCompleted);
         setTimeout(() => {
             setLoading(false);
         }, 1000);

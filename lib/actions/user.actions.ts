@@ -1,6 +1,6 @@
 "use server";
 
-import connectToDB from "../mongoose";
+import connectToDB from "../db";
 import User from "../models/user.models";
 
 export interface Params {
@@ -26,6 +26,5 @@ export async function updateUser({ name, email, image }: Params) {
     } catch(error: any) {
         throw new Error(`Failed to update user ${error.message}`)
     }
-    
-    
+      
 }

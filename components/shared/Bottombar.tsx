@@ -3,7 +3,6 @@
 import { navLinks } from "@/constants";
 import Image from "next/image";
 import Link from "next/link";
-import NavLinks from "./NavLinks";
 
 import { usePathname } from "next/navigation";
 
@@ -11,7 +10,7 @@ const Bottombar = () => {
     const pathname = usePathname();
 
     return (
-        <nav className="bg-purple-900 fixed bottom-0 w-full z-10">
+        <nav className="bg-purple-900 fixed bottom-0 w-full z-50">
             <ul className="flex justify-between items-center gap-3 p-2 lg:hidden">
                 {navLinks.map((item) => {
                     const { label, link, icon } = item;

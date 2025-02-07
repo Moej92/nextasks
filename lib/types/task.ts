@@ -1,7 +1,5 @@
-import { ObjectId } from "mongoose";
-
 export interface ITask {
-    _id: ObjectId;
+    id: string;
     title: string;
     note?: string;
     dueDate?: string;
@@ -21,14 +19,12 @@ export interface ITaskFormData {
 }
 
 export interface ISubtask {
-    _id?: ObjectId;
+    id: string;
     title: string;
-    note?: string;
-    dueDate: Date;
+    note: string | null;
+    dueDate: Date | null;
     isCompleted: boolean;
-    createdAt: string;
-    subtaskCount?: number;
-    id?: string;
+    createdAt?: Date;
 }
 
 export interface ITaskFormProps {

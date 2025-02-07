@@ -78,14 +78,15 @@ const Searchbar = ({
                 </button>
 
                 <ul className={`absolute z-30 bg-white text-purple-900 w-full max-h-[300px] md:max-h-[400px] transition-all overflow-y-auto flex flex-col rounded-md mt-0.5 ${searchTerm ? "scale-1 opacity-100" : "scale-0 opacity-0"}`}>
-                    {tasks.length > 0 ? tasks.map((task: ITask) => {
+                    {tasks.length > 0 ? tasks.map((task: ITask, i) => {
+                        console.log(task)
                         return (
                             <li 
-                                key={task._id.toString()}
+                                key={task.id}
                                 className="border-2 flex"
                             >
                                 <Link 
-                                    href={`/my-tasks/${task._id.toString()}`}
+                                    href={`/my-tasks/${task.id}`}
                                     className="w-full h-full p-2 hover:bg-purple-800 hover:text-purple-100 text-sm flex justify-between sm:text-base"
                                     onClick={() => {
                                         setSearchTerm("");

@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { getTasksForHomePage } from "@/lib/actions/task.actions";
 
 import Link from "next/link";
-import TaskCard from "@/components/shared/TaskCard";
+import TaskCard from "@/components/TaskCard";
 
 type TasksType = {
   today: any[];
@@ -17,8 +17,10 @@ export default async function Home() {
   if(!session) return null;
 
   const { id: userId } = session.user as { id: string };
-  
-  const tasks: TasksType = await getTasksForHomePage(userId);
+
+  // const tasks: TasksType = await getTasksForHomePage(userId);
+
+  const tasks = await getTasksForHomePage(userId);
 
   if(!tasks.today.length && !tasks.upcoming.length && !tasks.overdue.length) {
     return (

@@ -1,6 +1,9 @@
-import { auth } from "./auth";
+import authConfig from "./auth.config";
+import NextAuth from "next-auth";
 
-const privateRoutes = ["/calendar", "/my-tasks", "/notification", "/settings"]
+const { auth } = NextAuth(authConfig);
+
+const privateRoutes = ["/calendar", "/my-tasks", "/settings"]
 
 export default auth((req) => {
     const { nextUrl, headers } = req;
@@ -22,9 +25,7 @@ export default auth((req) => {
 })
 
 export const config = {
-    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-    unstable_allowDynamic: [
-        '/lib/mongoose.ts', // allows a single file
-        '**/node_modules/function-bind/**', // use a glob to allow anything in the function-bind 3rd party module
-      ],
+    // matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+    matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+
 }

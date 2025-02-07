@@ -14,13 +14,13 @@ const Subtask = ({ subtask, mainTaskCompletionStatus }: {
     return (
         <div className="p-3 lg:text-purple-800 border-purple-900 border-l">
             <p className="text-xs">
-                {new Date(createdAt).toLocaleDateString()}
+                {createdAt && new Date(createdAt).toLocaleDateString()}
             </p>
 
             <div className="flex justify-between items-start">
                 <h3 className="w-[85%] font-semibold">{title}</h3>
                 {!mainTaskCompletionStatus && <SubtaskCompletion 
-                    taskId={id} 
+                    subtaskId={id} 
                     isCompleted={isCompleted} 
                 />}
             </div>

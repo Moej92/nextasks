@@ -31,7 +31,7 @@ const Page = async () => {
                 <div className="flex flex-col items-center sm:flex-row gap-5">
                     <form action={async () => {
                         "use server"
-                        await signIn("github",  { redirectTo: "/"});
+                        await signIn("github",  { redirectTo: "/" });
                     }}>
                         <button type="submit" className="flex items-center gap-2 py-1 px-4 rounded-full bg-white text-purple-900 shadow-inner hover:shadow-purple-900 transition-shadow">
                             <Image 
@@ -46,7 +46,7 @@ const Page = async () => {
 
                     <form action={async () => {
                         "use server"
-                        await signIn("github");
+                        await signIn("google", { redirectTo: "/" });
                     }}>
                         <button type="submit" className="flex items-center gap-2 py-1 px-4 rounded-full bg-purple-800 text-white shadow-inner hover:shadow-purple-100 transition-shadow">
                             <Image 

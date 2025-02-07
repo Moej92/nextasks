@@ -1,128 +1,109 @@
 "use server";
 
-import connectToDB from "../mongoose";
-import Task from "../models/task.models";
-
+import { prisma } from "@/prisma/prisma";
 import { ITaskFormData } from "../types";
-
 import { revalidatePath } from "next/cache";
-import { ObjectId } from "mongoose";
 
-interface Subtask {
-  title: string;
-  note?: string;
-  dueDate?: string;
-  _id?: ObjectId;
-}
 
 export const createNewTask = async (taskData: ITaskFormData, userId?: string) => {
-    const { title, note, tags, dueDate, priority, subtasks} = taskData;
+  const { title, note, tags, dueDate, priority, subtasks } = taskData;
 
-    try {
-        await connectToDB();
+  if(title.trim() === "") {
+    return { message: "Title is empty"}
+  }
 
-        const mainTask = new Task({
-            title, 
-            note, 
-            tags, 
-            dueDate, 
-            priority, 
-            createdBy: userId,
-            subtasks: []
-        })
-
-        const savedMainTask = await mainTask.save();
-
-        if(subtasks.length > 0) {
-            const savedSubtasks = await Promise.all(
-                subtasks.map(async (subtask: Subtask) => {
-                    const newSubtask = new Task({
-                        title: subtask.title,
-                        note: subtask.note,
-                        dueDate: subtask.dueDate,
-                        parentTask: savedMainTask._id,
-                        createdBy: userId
-                    });
-    
-                    const savedSubtasks = await newSubtask.save();
-                    return savedSubtasks._id
-                })
-            );
-    
-            savedMainTask.subtasks = savedSubtasks;
-            await savedMainTask.save();
+  if(!userId) return;
+  try {
+    await prisma.task.create({
+      data: {
+        title,
+        note,
+        tags,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        priority: !priority ? "" : priority,
+        createdById: userId,
+        subtasks: {
+          create: subtasks.map((subtask) => ({
+            title: subtask.title,
+            note: subtask.note,
+            dueDate: subtask.dueDate ? new Date(subtask.dueDate) : null
+          }))
         }
+      }
+    })
 
-        return { message: "Successfully created" }
-    } catch(err: any) {
-        throw new Error(`Failed to add task. Please try again. ${err.message}`)
-    }
+    return { message: "Successfully created" };
+  } catch (err: any) {
+    throw new Error(`Failed to add task. Please try again. ${err.message}`);
+  }
 }
 
 export const editTask = async (taskData: ITaskFormData, taskId?: string) => {
-  const { title, note, tags, dueDate, priority, subtasks } = taskData;
 
   try {
-    await connectToDB();
-    
-    const taskDoc = await Task.findById(taskId);
-    if(!taskDoc) {
-      throw new Error("Task not found.");
-    }
+    const { title, note, dueDate, priority, tags, subtasks } = taskData;
 
-    // Update the main task details
-    taskDoc.title = title;
-    taskDoc.note = note;
-    taskDoc.tags = tags;
-    taskDoc.dueDate = dueDate;
-    taskDoc.priority = priority;
+    // Get current subtasks from the database
+    const existingSubtasks = await prisma.subtask.findMany({
+      where: { parentTaskId: taskId },
+      select: { id: true, title: true, note: true, dueDate: true }
+    });
 
-    // Array to track updated or newly created subtask IDs
-    const updatedSubtaskIds: string[] = [];
+    const existingSubtaskIds = existingSubtasks.map((sub) => sub.id);
+    // console.log(existingSubtaskIds);
 
-    if(subtasks.length > 0) {
-      await Promise.all(
-        subtasks.map(async (subtask: Subtask) => {
-          if(subtask._id) {
-            // Update exisiting subtask
-            const exisitingSubtask = await Task.findById(subtask._id);
-            if(exisitingSubtask) {
-              exisitingSubtask.title = subtask.title;
-              exisitingSubtask.note = subtask.note;
-              exisitingSubtask.dueDate = subtask.dueDate;
-              await exisitingSubtask.save();
-              updatedSubtaskIds.push(exisitingSubtask._id.toString());
-            }
-          } else {
-            // Create a new subtask
-            const newSubtask = new Task({
-              title: subtask.title,
-              note: subtask.note,
-              dueDate: subtask.dueDate,
-              parentTask: taskId
-            })
-            const savedSubtask = await newSubtask.save();
-            updatedSubtaskIds.push(savedSubtask._id.toString());
-          }
-        })
-      )
-    }
+    // Ignore new subtasks
+    const updatedSubtaskIds = subtasks.map((sub: any) => sub.id).filter(Boolean);
 
-    // Remove subtasks that are no longer present in the updated data
-    const subtasksToRemove = taskDoc.subtasks.filter(
-      (subtaskId: string) => !updatedSubtaskIds.includes(subtaskId.toString())
+    // Find subtasks to delete (existing ones not in the updated list)
+    const subtasksToDelete = existingSubtaskIds.filter(
+      (id) => !updatedSubtaskIds.includes(id)
     );
 
-    await Promise.all(
-      subtasksToRemove.map(async (subtaskId: string) => {
-          await Task.findByIdAndDelete(subtaskId);
+    // Prepare updates, deletions, and insertions
+    const updateTask = prisma.task.update({
+      where: { id: taskId },
+      data: { 
+        title, 
+        note, 
+        dueDate: dueDate ? new Date(dueDate) : null, 
+        priority, 
+        tags 
+      },
+    });
+
+    const updateSubtasks = subtasks
+      .filter((sub: any) => sub.id) // Update only if it has an ID
+      .map((sub: any) =>
+        prisma.subtask.update({
+          where: { id: sub.id },
+          data: { 
+            title: sub.title, 
+            note: sub.note, 
+            dueDate: sub.dueDate ? new Date(sub.dueDate) : null 
+          },
+        })
+      );
+
+    const createSubtasks = subtasks
+    .filter((sub: any) => !sub.id) // Create only if it has no ID
+    .map((sub) =>
+      prisma.subtask.create({
+        data: { ...sub, parentTaskId: taskId },
       })
     );
 
-    // Update the task's subtasks array
-    taskDoc.subtasks = updatedSubtaskIds;
+    const deleteSubtasks = prisma.subtask.deleteMany({
+      where: { id: { in: subtasksToDelete } },
+    });
 
-    await taskDoc.save();
+
+    await prisma.$transaction([
+      updateTask,
+      ...updateSubtasks,
+      ...createSubtasks,
+      deleteSubtasks,
+    ]);
 
     revalidatePath("/");
 
@@ -134,59 +115,72 @@ export const editTask = async (taskData: ITaskFormData, taskId?: string) => {
 }
 
 export const getTasksForHomePage = async (userId: string) => {
-    try {
-        await connectToDB();
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of the day
+    const endOfToday = new Date(today);
+    endOfToday.setHours(23, 59, 59, 999); // End of the day
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Start of the day
-        const endOfToday = new Date(today);
-        endOfToday.setHours(23, 59, 59, 999); // End of the day
-    
-        // Fetch tasks based on categories directly in the query
-        const [todayTasks, upcomingTasks, overdueTasks] = await Promise.all([
-          Task.find({
-            createdBy: userId,
-            parentTask: null, // Only main tasks
-            dueDate: { $gte: today, $lte: endOfToday }, // Today's tasks
-          })
-            .select("title note tags dueDate priority isCompleted subtasks")
-            .populate("subtasks", "isCompleted title note dueDate")
-            , // Fetch subtask count
+    const [todayTasks, upcomingTasks, overdueTasks] = await Promise.all([
+      prisma.task.findMany({
+        where: {
+          createdById: userId,
+          dueDate: {
+            gte: today,
+            lte: endOfToday
+          }
+        },
+        include: {
+          subtasks: true
+        }
+      }),
+      prisma.task.findMany({
+        where: {
+          createdById: userId,
+          dueDate: {
+            gt: endOfToday
+          }
+        },
+        include: {
+          subtasks: true
+        }
+      }),
+      prisma.task.findMany({
+        where: {
+          createdById: userId,
+          dueDate: {
+            not: null,
+            lt: today,
+          },
+          isCompleted: false
+        },
+        include: {
+          subtasks: true
+        }
+      })
+    ]);
 
-          Task.find({
-            createdBy: userId,
-            parentTask: null,
-            isCompleted: false, // Exclude completed tasks
-            dueDate: { $gt: endOfToday }, // Upcoming tasks
-          })
-            .sort({ dueDate: 1 })
-            .select("title note tags dueDate priority isCompleted subtasks")
-            .populate("subtasks", "isCompleted title note dueDate")
-            ,
+    return { today: todayTasks, upcoming: upcomingTasks, overdue: overdueTasks };
 
-          Task.find({
-            createdBy: userId,
-            parentTask: null,
-            isCompleted: false, // Exclude completed tasks
-            dueDate: { $lt: today }, // Overdue tasks
-          })
-            .select("title note tags dueDate priority isCompleted subtasks")
-            .populate("subtasks", "isCompleted title note dueDate")
-            ,
-        ]);
-    
-        return { today: todayTasks, upcoming: upcomingTasks, overdue: overdueTasks };
-    } catch(err: any) {
-        throw new Error(`Failed to fetch tasks. ${err.message}`)
-    }
+  } catch (error: any) {
+    throw new Error(`Failed to fetch tasks. ${error.message}`);
+  }
 }
 
 export const deleteTask = async (taskId: string) => {
   try {
-    await connectToDB();
 
-    await Task.deleteMany({ parentTask: taskId})
-    await Task.findByIdAndDelete(taskId);
+    const deleteSubtasks = prisma.subtask.deleteMany({
+      where: {
+        parentTaskId: taskId, // Delete all subtasks linked to the main task
+      },
+    });
+
+    const deleteTask = prisma.task.delete({
+      where: { id: taskId }, // Delete the main task
+    });
+
+    await prisma.$transaction([deleteSubtasks, deleteTask]);
 
     revalidatePath("/");
 
@@ -195,38 +189,29 @@ export const deleteTask = async (taskId: string) => {
     }
 
   } catch(error: any) {
-    throw new Error(`Failed to delete the task ${error.message}`)
+    return { error: "An error occured" }
   } 
 }
 
 export const updateTaskCompletionStatus = async (taskId: string, isCompleted: boolean) => {
-  const session = await Task.startSession();
-
   try {
-    session.startTransaction();
-
-    await connectToDB();
-
-    const updatedTask = await Task.findByIdAndUpdate(
-      taskId,
-      { isCompleted },
-      { new: true }
-    );
-
-    if(!updatedTask) {
-      throw new Error("Task not found");
-    }
-
+    let updateSubtasks = [];
+    
     if(isCompleted) {
-      await Task.updateMany(
-        { parentTask: { $eq: taskId, $exists: true } },
-        { isCompleted: true },
-        { session }
+      updateSubtasks.push(
+        prisma.subtask.updateMany({
+          where: { parentTaskId: taskId },
+          data: { isCompleted: true }
+        })
       );
     }
 
-    await session.commitTransaction();
-    session.endSession();
+    const updateTask = prisma.task.update({
+      where: { id: taskId },
+      data: { isCompleted }
+    })
+
+    await prisma.$transaction([...updateSubtasks, updateTask]);
 
     revalidatePath("/");
 
@@ -237,17 +222,17 @@ export const updateTaskCompletionStatus = async (taskId: string, isCompleted: bo
     }
 
   } catch(error: any) {
-    await session.abortTransaction();
-    session.endSession();
     throw new Error(`Failed to update task status: ${error.message}`)
   }
 }
 
 export const updateSubtaskCompletionStatus = async (taskId: string, isCompleted: boolean) => {
   try {
-    await connectToDB();
 
-    await Task.findByIdAndUpdate(taskId, { isCompleted });
+    await prisma.subtask.update({
+      where: { id: taskId },
+      data: { isCompleted }
+    });
 
     revalidatePath("/my-tasks");
 
@@ -261,15 +246,19 @@ export const updateSubtaskCompletionStatus = async (taskId: string, isCompleted:
 export const getTaskById = async (taskId: string, userId: string) => {
 
   try {
-    const taskDoc = await Task
-      .findOne({ _id: taskId, createdBy: userId })
-      .populate('subtasks', "title note dueDate isCompleted createdAt");
+    const task = await prisma.task.findFirst({
+      where: {
+        createdById: userId,
+        id: taskId
+      },
+      include: {
+        subtasks: true
+      }
+    })
 
-    if(!taskDoc) {
-      return { error: "Unauthorized access" };
-    }
+    if(!task) throw new Error("Unauthorized access");
     
-    return taskDoc;
+    return task;
   } catch(error: any) {
     throw new Error(`Failed to get Task: ${error.message}`);
   }
@@ -277,17 +266,23 @@ export const getTaskById = async (taskId: string, userId: string) => {
 
 export const searchTasks = async (userId: string, searchTerm: string) => {
   try {
-    await connectToDB();
 
-    const query = {
-      createdBy: userId,
-      $or: [
-        { title: { $regex: searchTerm, $options: "i" } },
-        { tags: { $regex: searchTerm, $options: "i" } }
-      ]
-    };
+    const tasks = await prisma.task.findMany({
+      where: {
+        createdById: userId,
+        OR: [
+          { title: { contains: searchTerm, mode: "insensitive"} },
+          { tags: { contains: searchTerm, mode: "insensitive" } }
+        ]
+      },
+      select: {
+        id: true,
+        title: true,
+        dueDate: true,
+        isCompleted: true
+      }
+    })
 
-    const tasks = await Task.find(query).select("title dueDate isCompleted").lean();
     return JSON.parse(JSON.stringify(tasks));
   } catch(error: any) {
     throw new Error(error.message)

@@ -10,6 +10,8 @@ import { ITaskFormProps } from "@/lib/types";
 const TaskForm = ({ 
     userId, taskId, initialFormData, formAction, formLabel, closeEditModal
 }: ITaskFormProps) => {
+
+    console.log(initialFormData)
     const router = useRouter();
     const [formData, setFormData] = useState(initialFormData);
     const [message, setMessage] = useState("");

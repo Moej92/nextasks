@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String  @unique
+  image         String
+  emailVerified DateTime?
+  createdAt     DateTime @default(now())
+  accounts      Account[]
+  tasks         Task[]
+}
+
+model Account {
+  id                 String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String  @db.ObjectId
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.String
+  access_token       String? @db.String
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.String
+  session_state      String?
+ 
+  user User @relation(fields: [userId], references: [id])
+ 
+  @@unique([provider, providerAccountId])
+}
+
+model Task {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  note        String?
+  dueDate     DateTime?
+  priority    String
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tags        String?
+
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String   @db.ObjectId
+
+  subtasks    Subtask[]
+}
+
+model Subtask {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  note         String?
+  dueDate      DateTime?
+  isCompleted  Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  
+  parentTask   Task?      @relation(fields: [parentTaskId], references: [id])
+  parentTaskId String?    @db.ObjectId 
+}

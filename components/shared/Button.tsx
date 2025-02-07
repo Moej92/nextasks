@@ -1,21 +1,23 @@
-
+interface ButtonProps {
+    children: React.ReactNode;
+    btnBg: string;
+    btnTextColor?: string;
+    customStyles?: string;
+    disabled?: boolean;
+    handleClick?: () => void;
+}
 
 const Button = ({ 
     children,
     btnBg,
+    btnTextColor,
     customStyles,
     disabled,
     handleClick,
-}: {
-    children: React.ReactNode;
-    btnBg: string;
-    customStyles?: string;
-    disabled?: boolean;
-    handleClick?: () => void;
-}) => {
+}: ButtonProps) => {
     return (
         <button 
-            className={`flex justify-center items-center ${btnBg} ${customStyles} ${disabled && "opacity-60 cursor-not-allowed"}`}
+            className={`flex justify-center items-center z-20 ${btnBg} ${btnTextColor} ${customStyles} ${disabled && "opacity-60 cursor-not-allowed"}`}
             disabled={disabled}
             onClick={handleClick}    
         >

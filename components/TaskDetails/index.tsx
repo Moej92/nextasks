@@ -7,18 +7,14 @@ const TaskDetails = async ({ taskId, userId }: { taskId: string; userId: string;
     let taskData;
     try {
         taskData = await getTaskById(taskId, userId);
-        if(taskData?.error) {
-            return (
-                <p>{taskData.error}</p>
-            )
-        }
+        
     } catch(error: any) {
         return (
             <p>Server error... {error.message}</p>
         )
     }
     
-    const { _id, title, note, dueDate, priority, tags, isCompleted, subtasks, createdAt } = taskData;
+    const { id, title, note, dueDate, priority, tags, isCompleted, subtasks, createdAt } = taskData;
 
     return (
         <div className="taskDetails-container">

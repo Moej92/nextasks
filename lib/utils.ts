@@ -20,7 +20,7 @@ export const overdueSubtasks = (subtasksArray: Subtask[]) => {
     )
 }
 
-export const todaySubtasksFromUpcomingTask = (subtasksArray: Subtask[]) => {
+export const todaySubtasksFromUpcomingTask = (subtasksArray: ISubtask[]) => {
     return subtasksArray.filter(subtask => 
         subtask.dueDate?.toLocaleDateString() === today.toLocaleDateString() 
         && !subtask.isCompleted
