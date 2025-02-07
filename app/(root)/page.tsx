@@ -18,8 +18,6 @@ export default async function Home() {
 
   const { id: userId } = session.user as { id: string };
 
-  // const tasks: TasksType = await getTasksForHomePage(userId);
-
   const tasks = await getTasksForHomePage(userId);
 
   if(!tasks.today.length && !tasks.upcoming.length && !tasks.overdue.length) {
