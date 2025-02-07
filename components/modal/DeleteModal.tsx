@@ -14,7 +14,7 @@ const DeleteModal = ({
         setSubmitMessage("Please wait...");
         try {
             const result = await deleteTask(taskId);
-            setSubmitMessage(result.message);
+            result.message && setSubmitMessage(result.message);
             setTimeout(() => {
                 closeModal()
             }, 500)
