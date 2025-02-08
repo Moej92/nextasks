@@ -58,6 +58,7 @@ const TaskCard = ({ task, item }: any) => {
                 completedSubtasksPercentage={completedSubtasksPercentage}
                 overdueSubtasksCount={overdueSubtasksCount}
                 todaySubtasksCount={todaySubtasksCount}
+                priority={priority}
             />
             }
             <TaskCardDueDate dueDate={dueDate} item={item} />

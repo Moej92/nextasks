@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { signOutAction } from "@/lib/actions/signout";
+import { signOutAction } from "@/lib/actions/auth";
 
 interface User {
     name: string;

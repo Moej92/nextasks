@@ -1,5 +1,6 @@
 interface ButtonProps {
     children: React.ReactNode;
+    type?: "submit" | "reset" | "button";
     btnBg: string;
     btnTextColor?: string;
     customStyles?: string;
@@ -9,6 +10,7 @@ interface ButtonProps {
 
 const Button = ({ 
     children,
+    type,
     btnBg,
     btnTextColor,
     customStyles,
@@ -19,7 +21,8 @@ const Button = ({
         <button 
             className={`flex justify-center items-center z-20 ${btnBg} ${btnTextColor} ${customStyles} ${disabled && "opacity-60 cursor-not-allowed"}`}
             disabled={disabled}
-            onClick={handleClick}    
+            onClick={handleClick}
+            type={type}   
         >
             {children}
         </button>

@@ -1,7 +1,7 @@
 import NavLinks from "./NavLinks";
 import Image from "next/image";
 import { auth } from "@/auth";
-import { signOutAction } from "@/lib/actions/signout";
+import { signOutAction } from "@/lib/actions/auth";
 
 const Leftbar = async () => {
     const session = await auth();
